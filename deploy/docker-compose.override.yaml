@@ -1,0 +1,19 @@
+version: "3.5"
+services:
+  gatling-solr:
+    environment:
+      SOLR_REQUESTLOG_ENABLED: "true"
+    deploy:
+      resources:
+        limits:
+          memory: 2048M
+    ports:
+      - "8983:8983"   # solr port
+      - "9983:9983"   # zookeeper port
+      - "58983:58983" # debugger port
+    volumes:
+      - gatling-solr-vol:/var/solr
+      - ./build/libs:/opt/solr/ext-libs:ro
+volumes:
+  gatling-solr-vol:
+    name: gatling-solr-vol

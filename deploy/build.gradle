@@ -1,0 +1,19 @@
+version = "0.0.1"
+
+def extLibsDirPath = "${buildDir}/libs"
+
+task clean {
+    doFirst {
+        delete extLibsDirPath
+    }
+}
+
+task aggregateExtLibs(type: Copy) {
+    into extLibsDirPath
+
+    // add source locations for additional plugin jars to be packaged when starting solr
+}
+
+task build {
+    dependsOn(":${project.path}:aggregateExtLibs")
+}
