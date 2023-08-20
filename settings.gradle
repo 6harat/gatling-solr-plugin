@@ -1,0 +1,3 @@
+rootProject.name = "gatling-solr-plugin"
+
+include "deploy"

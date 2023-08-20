@@ -1,0 +1,18 @@
+plugins {
+    id("com.diffplug.spotless") version("6.18.0") apply(false)
+}
+
+version = "0.0.1"
+
+apply from: "${rootDir}/gradle/scripts/setup.gradle"
+apply from: "${rootDir}/gradle/scripts/jdk.gradle"
+apply from: "${rootDir}/gradle/scripts/scala.gradle"
+
+
+def gatlingVersion = "3.9.5"
+def solrVersion = "9.3.0"
+
+dependencies {
+    implementation "io.gatling:gatling-core:${gatlingVersion}"
+    implementation "org.apache.solr:solr-solrj:${solrVersion}"
+}
