@@ -8,5 +8,5 @@ import io.leafnode.gatling.solr.request.builder.SolrRequestBuilder
 object Predef {
   def solr(implicit configuration: GatlingConfiguration) = SolrProtocolBuilder(configuration)
 
-  def solr(requestName: Expression[String], eventName: Expression[String]) = SolrRequestBuilder(requestName, eventName)
+  def solr(requestName: Expression[String], collectionName: Expression[String]) = SolrRequestBuilder(requestName, collectionName)
 }

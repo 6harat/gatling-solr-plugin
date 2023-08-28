@@ -62,8 +62,7 @@ class SolrRequestAction( val solrClient: SolrClient,
       try {
         request.process(solrClient, collectionName)
       } catch {
-        case solrEx: SolrServerException => e = solrEx
-        case ioEx: IOException => e = ioEx
+        case ex: Exception => e = ex
       }
 
       val requestEndDate = clock.nowMillis

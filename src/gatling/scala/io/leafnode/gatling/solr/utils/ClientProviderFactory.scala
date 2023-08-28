@@ -1,5 +1,6 @@
 package io.leafnode.gatling.solr.utils
 
+import java.util
 import org.apache.http.{HttpHeaders, HttpRequest, HttpRequestInterceptor}
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.config.RegistryBuilder
@@ -8,7 +9,9 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory
 import org.apache.http.impl.client.{DecompressingHttpClient, HttpClients}
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.protocol.HttpContext
-import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, BinaryResponseParser, CloudSolrClient, HttpSolrClient}
+import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, BinaryResponseParser, CloudSolrClient, Http2SolrClient, HttpSolrClient}
+
+import java.util.concurrent.TimeUnit
 
 object ClientProviderFactory {
 
@@ -45,16 +48,33 @@ object ClientProviderFactory {
     solrClient
   }
 
-//  val solrCloudClientFactoryProvider = (zkHost: String, solrConnectTimeoutMs: Int, solrSocketTimeoutMs: Int,
-//  zkConnectTimeoutMs: Int, zkClientTimeoutMs: Int) => () => {
-//    val solrClient = new CloudSolrClient.Builder().withZkHost()
-//      .withConnectionTimeout(solrConnectTimeoutMs)
-//      .withSocketTimeout(solrSocketTimeoutMs)
-//      .build()
-//    solrClient.setParser(new BinaryResponseParser)
-//    solrClient.setZkConnectTimeout(zkConnectTimeoutMs)
-//    solrClient.setZkClientTimeout(zkClientTimeoutMs)
-//    solrClient
-//  }
+  val http2ClientFactoryProvider = (baseUrl: String, maxConnectionsPerHost: Int, solrConnectTimeoutMs: Int, solrRequestTimeoutMs: Int) => () => {
+    val solrClient = new Http2SolrClient.Builder(baseUrl)
+      .withMaxConnectionsPerHost(maxConnectionsPerHost)
+      .withConnectionTimeout(solrConnectTimeoutMs, TimeUnit.MILLISECONDS)
+      .withIdleTimeout(10, TimeUnit.MINUTES)
+      .withRequestTimeout(solrRequestTimeoutMs, TimeUnit.MILLISECONDS)
+      .withRequestWriter(new BinaryRequestWriter)
+      .withResponseParser(new BinaryResponseParser)
+      .build()
+    solrClient
+  }
+
+  val solrCloudClientFactoryProvider = (baseUrl: String, maxConnectionsPerHost: Int, solrConnectTimeoutMs: Int,
+  solrRequestTimeoutMs: Int) => () => {
+    val http2ClientBuilder = new Http2SolrClient.Builder()
+      .withMaxConnectionsPerHost(maxConnectionsPerHost)
+      .withConnectionTimeout(solrConnectTimeoutMs, TimeUnit.MILLISECONDS)
+      .withIdleTimeout(10, TimeUnit.MINUTES)
+      .withRequestTimeout(solrRequestTimeoutMs, TimeUnit.MILLISECONDS)
+      .withRequestWriter(new BinaryRequestWriter)
+      .withResponseParser(new BinaryResponseParser)
+
+    val solrClient = new CloudSolrClient.Builder(util.List.of(baseUrl))
+      .withInternalClientBuilder(http2ClientBuilder)
+      .withRetryExpiryTime(10, TimeUnit.SECONDS)
+      .build()
+    solrClient
+  }
 
 }
